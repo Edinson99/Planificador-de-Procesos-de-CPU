@@ -10,3 +10,6 @@ class Scheduler(ABC):
     @abstractmethod
     def select_next(self, ready: List[Process]) -> Process:
         """Retira y devuelve el siguiente proceso de la cola de listos."""
+
+    def should_preempt(self, _current: Process, _ready: List[Process]) -> bool:
+        return False

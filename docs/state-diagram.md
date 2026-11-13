@@ -5,14 +5,14 @@ stateDiagram-v2
     [*] --> Nuevo
     Nuevo --> Listo: llegada
     Listo --> Ejecucion: asignacion de CPU
-    Ejecucion --> Listo: quantum agotado
+    Ejecucion --> Listo: quantum o expropiacion
     Ejecucion --> Bloqueado: solicitud de E/S
     Bloqueado --> Listo: E/S completada
     Ejecucion --> Terminado: rafaga completada
     Terminado --> [*]
 ```
 
-El reloj del simulador avanza un tick por cada unidad de ejecucion o inactividad.
-Una E/S configurada mueve el proceso de Ejecucion a Bloqueado y lo devuelve a
-Listo cuando transcurre su duracion. El tiempo de retorno incluye la espera y
-el bloqueo; el tiempo de espera excluye la rafaga de CPU y la E/S.
+El reloj avanza un tick por cada unidad de ejecucion o inactividad. Cada
+solicitud de E/S mueve al proceso de Ejecucion a Bloqueado y luego a Listo; un
+proceso puede repetir ese ciclo varias veces antes de Terminado. El retorno
+incluye espera y bloqueo; el tiempo de espera excluye la rafaga y las E/S.

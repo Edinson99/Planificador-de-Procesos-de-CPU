@@ -1,20 +1,15 @@
 import argparse
-import json
 from pathlib import Path
 import sys
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.engine.simulator import SimulationResult, Simulator
 from src.models.process import Process
-from src.schedulers import (
-    FCFSScheduler,
-    PriorityScheduler,
-    RoundRobinScheduler,
-    SJFScheduler,
-)
+from src.process_io import load_processes_file
+from src.schedulers import create_scheduler
 
 
 def _read_processes(path: Optional[str]) -> List[Process]:
@@ -25,28 +20,7 @@ def _read_processes(path: Optional[str]) -> List[Process]:
             Process("P3", arrival_time=2, burst_time=1, priority=3),
         ]
 
-    try:
-        data: Any = json.loads(Path(path).read_text(encoding="utf-8"))
-    except OSError as error:
-        raise ValueError("No se pudo leer '{}': {}".format(path, error)) from error
-    except json.JSONDecodeError as error:
-        raise ValueError("JSON invalido en '{}': {}".format(path, error)) from error
-
-    if not isinstance(data, list) or not data:
-        raise ValueError("El JSON debe contener una lista no vacia de procesos.")
-
-    processes = []
-    for index, item in enumerate(data):
-        if not isinstance(item, dict):
-            raise ValueError("El elemento {} debe ser un objeto JSON.".format(index))
-        try:
-            process_data: Dict[str, Any] = item
-            processes.append(Process(**process_data))
-        except (TypeError, ValueError) as error:
-            raise ValueError(
-                "Proceso invalido en la posicion {}: {}".format(index, error)
-            ) from error
-    return processes
+    return load_processes_file(path)
 
 
 def _format_gantt(result: SimulationResult) -> str:
@@ -86,6 +60,9 @@ def _print_result(result: SimulationResult) -> None:
         )
     print("Espera promedio: {:.2f}".format(result.average_waiting_time))
     print("Retorno promedio: {:.2f}".format(result.average_turnaround_time))
+    print("Utilizacion de CPU: {:.2f}%".format(result.cpu_utilization))
+    print("Rendimiento: {:.4f} procesos/tick".format(result.throughput))
+    print("Cambios de contexto: {}".format(result.context_switches))
 
 
 def main() -> None:
@@ -94,13 +71,31 @@ def main() -> None:
     )
     parser.add_argument(
         "--algorithm",
-        choices=("fcfs", "sjf", "rr", "priority"),
+        choices=(
+            "fcfs",
+            "sjf",
+            "srtf",
+            "rr",
+            "priority",
+            "priority_preemptive",
+        ),
         default="fcfs",
         help="Estrategia de planificacion (por defecto: fcfs).",
     )
     parser.add_argument("--quantum", type=int, help="Quantum requerido por Round Robin.")
     parser.add_argument("--input", help="Archivo JSON con la lista de procesos.")
+    parser.add_argument(
+        "--gui",
+        action="store_true",
+        help="Abre la interfaz grafica de escritorio (Tkinter).",
+    )
     args = parser.parse_args()
+
+    if args.gui:
+        from src.ui.app import launch_app
+
+        launch_app()
+        return
 
     if args.algorithm == "rr" and args.quantum is None:
         parser.error("--quantum es obligatorio con --algorithm rr.")
@@ -109,13 +104,9 @@ def main() -> None:
 
     try:
         processes = _read_processes(args.input)
-        schedulers = {
-            "fcfs": FCFSScheduler,
-            "sjf": SJFScheduler,
-            "rr": lambda: RoundRobinScheduler(args.quantum),
-            "priority": PriorityScheduler,
-        }
-        result = Simulator(schedulers[args.algorithm]()).run(processes)
+        quantum = args.quantum if args.quantum is not None else 2
+        scheduler = create_scheduler(args.algorithm, quantum=quantum)
+        result = Simulator(scheduler).run(processes)
     except ValueError as error:
         parser.error(str(error))
     _print_result(result)

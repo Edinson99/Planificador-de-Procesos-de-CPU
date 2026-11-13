@@ -1,3 +1,3 @@
-from src.models.process import Process, ProcessState
+from src.models.process import IOEvent, Process, ProcessState
 
-__all__ = ["Process", "ProcessState"]
+__all__ = ["IOEvent", "Process", "ProcessState"]

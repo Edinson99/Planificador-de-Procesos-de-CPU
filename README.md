@@ -1,81 +1,105 @@
-# Simulador de Planificador de Procesos de CPU
+# Simulador de Planificación de Procesos de CPU
 
-Prototipo local en Python que simula la planificacion de procesos con un reloj
-logico por ticks. La interfaz de consola esta separada del motor y de las
-estrategias de planificacion.
+Prototipo educativo en Python para comparar algoritmos de planificación de CPU
+con un reloj lógico determinista. Permite configurar procesos, ráfagas,
+prioridades y múltiples eventos de entrada/salida (E/S), y observar el Gantt,
+los estados y las colas en cada tick.
 
-## Requisitos
+## Inicio rápido en Windows
 
-- Python 3.9 o posterior
-- Sin dependencias externas
+1. Instala Python 3.9 o posterior con Tkinter.
+2. Abre la carpeta del proyecto.
+3. Haz doble clic en [`iniciar_gui.bat`](./iniciar_gui.bat).
 
-## Ejecucion
+También puedes iniciar la ventana desde PowerShell:
 
-Desde la raiz del repositorio:
+```powershell
+python src\main.py --gui
+```
+
+La aplicación no requiere paquetes de terceros. Consulta el
+[Manual de usuario](./docs/manual-usuario.md) para agregar procesos, configurar
+algoritmos, explorar la línea de tiempo y trabajar con escenarios JSON.
+
+## Funcionalidades
+
+- FCFS/FIFO, SJF, SRTF, Round Robin y prioridades expropiativas o no
+  expropiativas.
+- Múltiples bloqueos por E/S para cada proceso.
+- Gantt con estados por proceso, llegadas, reproducción, avance por tick y
+  consulta de colas.
+- Métricas de respuesta, espera y retorno; utilización, rendimiento y cambios
+  de contexto.
+- Importación y exportación de escenarios JSON desde la GUI.
+- Interfaz de consola para ejecuciones rápidas y pruebas.
+
+## Consola
+
+Ejecuta el ejemplo FCFS:
 
 ```powershell
 python src\main.py
 ```
 
-El ejemplo integrado ejecuta FCFS. Para elegir otro algoritmo:
+Otros algoritmos:
 
 ```powershell
 python src\main.py --algorithm sjf
+python src\main.py --algorithm srtf
 python src\main.py --algorithm priority
+python src\main.py --algorithm priority_preemptive
 python src\main.py --algorithm rr --quantum 2
 ```
 
-Para cargar procesos desde un archivo JSON:
+Para ejecutar un escenario:
 
 ```powershell
 python src\main.py --algorithm rr --quantum 2 --input procesos.json
 ```
 
-Formato de entrada:
+## Formato de escenario JSON
+
+El archivo contiene una lista de procesos. `io_events` es opcional; cada
+elemento bloquea el proceso después de acumular `after_cpu` ticks de CPU y lo
+mantiene bloqueado por `duration` ticks.
 
 ```json
 [
-  {"pid": "P1", "arrival_time": 0, "burst_time": 5, "priority": 2},
+  {
+    "pid": "P1",
+    "arrival_time": 0,
+    "burst_time": 6,
+    "priority": 2,
+    "io_events": [
+      {"after_cpu": 2, "duration": 3},
+      {"after_cpu": 4, "duration": 1}
+    ]
+  },
   {
     "pid": "P2",
     "arrival_time": 1,
     "burst_time": 3,
-    "priority": 1,
-    "io_after": 1,
-    "io_duration": 2
+    "priority": 1
   }
 ]
 ```
 
-`io_after` y `io_duration` son opcionales y deben aparecer juntos. `io_after`
-indica despues de cuantos ticks de CPU el proceso pasa a Bloqueado; tras
-`io_duration` ticks vuelve a Listo. Un numero de prioridad menor representa
-mayor prioridad. FCFS, SJF y Prioridades son no expropiativos; Round Robin usa
-el quantum indicado.
+Los valores de `after_cpu` deben ser enteros positivos, estar en orden
+creciente y ser menores que la ráfaga de CPU. Los escenarios existentes con
+`io_after` y `io_duration` siguen siendo compatibles.
 
-La salida muestra el diagrama de Gantt, los tiempos por proceso y los promedios.
-Por ejemplo, una ejecucion FCFS puede producir:
+## Métricas y convenciones
 
-```text
-Gantt: 0 -- P1 -- 5 -- P2 -- 8
-PID   Llegada  Rafaga  Inicio  Fin  Retorno  Espera  Respuesta
-P1          0       5       0    5        5       0          0
-P2          1       3       5    8        7       4          4
-```
+- Retorno = finalización − llegada.
+- Espera = retorno − ráfaga de CPU − tiempo total bloqueado.
+- Respuesta = primer inicio de CPU − llegada.
+- Utilización = ticks ocupados ÷ ticks totales × 100.
+- Rendimiento = procesos terminados ÷ ticks totales.
 
-## Estructura
-
-```text
-src/
-  engine/simulator.py       Motor y reloj logico
-  models/process.py         Proceso, estados y metricas
-  schedulers/               FCFS, SJF, Round Robin y Prioridades
-  main.py                   Interfaz de consola
-tests/                      Pruebas unitarias
-docs/
-  algorithms.md             Algoritmos y formulas
-  state-diagram.md          Transiciones de estado
-```
+Los cambios de contexto entre procesos se cuentan, pero no agregan tiempo de
+sobrecarga al reloj lógico. Para las reglas completas consulta
+[Algoritmos y métricas](./docs/algorithms.md) y el
+[diagrama de estados](./docs/state-diagram.md).
 
 ## Pruebas
 
@@ -83,5 +107,28 @@ docs/
 python -m unittest discover -s tests -v
 ```
 
-El motor no crea hilos ni espera tiempo real: cada tick representa una unidad
-de tiempo simulada, por lo que los resultados son reproducibles.
+Las pruebas cubren políticas preemptivas y no preemptivas, colas, E/S múltiple,
+métricas, compatibilidad JSON y lógica de la interfaz.
+
+## Documentación
+
+- [Manual de usuario](./docs/manual-usuario.md): instalación, uso de la GUI y
+  la CLI, algoritmos, escenarios y solución de problemas.
+- [Manual técnico](./docs/manual-tecnico.md): arquitectura, modelo, motor,
+  estrategias, métricas, JSON y guía de extensión.
+- [Algoritmos y métricas](./docs/algorithms.md)
+- [Estados de un proceso](./docs/state-diagram.md)
+
+## Estructura del proyecto
+
+```text
+src/
+  main.py                       Entrada de GUI y CLI
+  process_io.py                 Carga y guardado de escenarios JSON
+  engine/simulator.py           Reloj lógico, colas, Gantt e instantáneas
+  models/process.py             Proceso, estados y eventos de E/S
+  schedulers/                   Estrategias de planificación
+  ui/app.py                     Interfaz gráfica Tkinter
+tests/                          Pruebas automatizadas
+docs/                           Manuales y documentación técnica
+```
