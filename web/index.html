@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10233f">
+    <title>Simulador de planificación de CPU</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-width">
+        <p class="eyebrow">Herramienta educativa</p>
+        <h1>Simulador de planificación de CPU</h1>
+        <p>Configura procesos, compara algoritmos y explora cada tick desde el navegador.</p>
+      </div>
+    </header>
+
+    <main class="page-width">
+      <section class="panel" aria-labelledby="setup-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Configuración</p>
+            <h2 id="setup-title">Procesos y algoritmo</h2>
+          </div>
+          <div class="button-row">
+            <button class="button button-secondary" id="add-process" type="button">Agregar proceso</button>
+            <button class="button button-secondary" id="load-example" type="button">Cargar ejemplo</button>
+          </div>
+        </div>
+
+        <p class="hint">Los eventos de E/S usan el formato <code>CPU acumulada:duración</code>, separados por comas. Ejemplo: <code>2:3, 5:1</code>.</p>
+
+        <div class="table-scroll">
+          <table class="process-table">
+            <thead>
+              <tr>
+                <th scope="col">PID</th>
+                <th scope="col">Llegada</th>
+                <th scope="col">Ráfaga CPU</th>
+                <th scope="col">Prioridad</th>
+                <th scope="col">Eventos E/S</th>
+                <th scope="col"><span class="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody id="process-list"></tbody>
+          </table>
+        </div>
+
+        <div class="options-row">
+          <label>
+            Algoritmo
+            <select id="algorithm">
+              <option value="fcfs">FIFO / FCFS (no expropiativo)</option>
+              <option value="sjf">SJF (no expropiativo)</option>
+              <option value="srtf">SRTF (expropiativo)</option>
+              <option value="rr">Round Robin (expropiativo)</option>
+              <option value="priority">Prioridad (no expropiativo)</option>
+              <option value="priority_preemptive">Prioridad expropiativa</option>
+            </select>
+          </label>
+          <label id="quantum-field" hidden>
+            Quantum
+            <input id="quantum" type="number" min="1" step="1" value="2">
+          </label>
+          <div class="button-row actions">
+            <button class="button button-primary" id="run-simulation" type="button">Simular</button>
+            <button class="button button-secondary" id="import-button" type="button">Importar JSON</button>
+            <button class="button button-secondary" id="export-button" type="button">Exportar JSON</button>
+            <input id="import-file" type="file" accept=".json,application/json" hidden>
+          </div>
+        </div>
+        <p id="error-message" class="error-message" role="alert" hidden></p>
+      </section>
+
+      <section id="results" class="results" aria-live="polite" hidden>
+        <section class="panel" aria-labelledby="gantt-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Resultado</p>
+              <h2 id="gantt-title">Diagrama de Gantt</h2>
+            </div>
+            <div class="button-row playback-buttons">
+              <button class="button button-secondary" id="previous-tick" type="button" aria-label="Tick anterior">◀ Tick</button>
+              <button class="button button-primary" id="playback" type="button">Reproducir</button>
+              <button class="button button-secondary" id="next-tick" type="button" aria-label="Tick siguiente">Tick ▶</button>
+            </div>
+          </div>
+          <div id="gantt" class="gantt-scroll" aria-label="Diagrama de Gantt"></div>
+          <label class="timeline-control">
+            <span>Tick seleccionado: <strong id="tick-label">0</strong></span>
+            <input id="timeline" type="range" min="0" max="0" value="0">
+          </label>
+          <div id="snapshot" class="snapshot"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="metrics-title">
+          <p class="eyebrow">Resumen</p>
+          <h2 id="metrics-title">Métricas</h2>
+          <div id="metrics" class="metric-grid"></div>
+          <h3>Detalle por proceso</h3>
+          <div class="table-scroll">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th scope="col">PID</th>
+                  <th scope="col">Llegada</th>
+                  <th scope="col">Ráfaga</th>
+                  <th scope="col">Inicio</th>
+                  <th scope="col">Fin</th>
+                  <th scope="col">Retorno</th>
+                  <th scope="col">Espera</th>
+                  <th scope="col">Respuesta</th>
+                </tr>
+              </thead>
+              <tbody id="process-results"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+      <footer>
+        <p>Los cálculos se realizan localmente en tu navegador; tus escenarios no se envían a ningún servidor.</p>
+      </footer>
+    </main>
+  </body>
+</html>

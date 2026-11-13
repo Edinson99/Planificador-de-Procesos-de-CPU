@@ -8,9 +8,16 @@ estados de cada proceso, las colas en cada tick y estadísticas del resultado.
 
 ## 2. Requisitos e inicio
 
+- **Desde la web:** abre el [simulador publicado en GitHub Pages](https://edinson99.github.io/Planificador-de-Procesos-de-CPU/). No requiere instalación; el cálculo ocurre en tu navegador.
 - Windows 10/11.
 - Python 3.9 o posterior, con Tkinter instalado.
 - No requiere instalar paquetes de terceros.
+
+En la versión web, agrega procesos o carga el ejemplo, selecciona un algoritmo,
+y pulsa **Simular**. Puedes importar o exportar escenarios JSON, seleccionar
+ticks desde el control de tiempo y usar los botones de reproducción. En los
+eventos E/S, escribe `CPU:duración` y separa varios eventos con comas, por
+ejemplo `2:3, 5:1`.
 
 Desde el Explorador de archivos, haz doble clic en `iniciar_gui.bat`. También
 puedes abrir PowerShell en la carpeta del proyecto y ejecutar:

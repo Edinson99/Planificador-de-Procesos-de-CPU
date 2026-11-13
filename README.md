@@ -1,9 +1,24 @@
 # Simulador de Planificación de Procesos de CPU
 
-Prototipo educativo en Python para comparar algoritmos de planificación de CPU
-con un reloj lógico determinista. Permite configurar procesos, ráfagas,
-prioridades y múltiples eventos de entrada/salida (E/S), y observar el Gantt,
-los estados y las colas en cada tick.
+Simulador educativo de planificación de CPU. Puedes usarlo desde el navegador
+con [la versión web](https://edinson99.github.io/Planificador-de-Procesos-de-CPU/)
+o ejecutar la aplicación Python de escritorio, ambas con un reloj lógico
+determinista. Permite configurar procesos, ráfagas, prioridades y múltiples
+eventos de entrada/salida (E/S), y observar el Gantt, los estados y las colas
+en cada tick.
+
+## Usar desde la web
+
+Abre el [simulador web](https://edinson99.github.io/Planificador-de-Procesos-de-CPU/).
+Agrega o importa procesos JSON, selecciona un algoritmo y pulsa **Simular**.
+Puedes avanzar por ticks o reproducir la línea de tiempo; los cálculos se
+realizan localmente en el navegador.
+
+El sitio se publica automáticamente en GitHub Pages cuando hay cambios en
+`web/` en la rama `main`. En la configuración del repositorio, selecciona
+**Settings > Pages > Build and deployment > Source: GitHub Actions** si Pages
+aún no está habilitado. El workflow valida las pruebas Python y web antes de
+desplegar.
 
 ## Inicio rápido en Windows
 
@@ -31,6 +46,7 @@ algoritmos, explorar la línea de tiempo y trabajar con escenarios JSON.
 - Métricas de respuesta, espera y retorno; utilización, rendimiento y cambios
   de contexto.
 - Importación y exportación de escenarios JSON desde la GUI.
+- Simulador web estático con importación/exportación JSON y reproducción por tick.
 - Interfaz de consola para ejecuciones rápidas y pruebas.
 
 ## Consola
@@ -131,4 +147,5 @@ src/
   ui/app.py                     Interfaz gráfica Tkinter
 tests/                          Pruebas automatizadas
 docs/                           Manuales y documentación técnica
+web/                            Simulador para GitHub Pages
 ```
